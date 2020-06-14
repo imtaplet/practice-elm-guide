@@ -1,0 +1,8 @@
+server {
+  listen $PORT;
+
+  location / {
+    root /app;
+    index index.html;
+  }
+}
