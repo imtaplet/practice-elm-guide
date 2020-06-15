@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, Attribute, div, input, text)
+import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 
@@ -9,24 +9,46 @@ main =
   Browser.sandbox { init = init, update = update, view = view }
 
 type alias Model =
-  { content : String
+  { name : String
+  , password : String
+  , passwordAgain : String
   }
 
 init : Model
 init =
-  { content = "" }
+  Model "" "" ""
 
-type Msg = Change String
+type Msg 
+  = Name String
+  | Password String
+  | PasswordAgain String
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    Change newContent ->
-      { model | content = newContent }
+    Name name ->
+      { model | name = name }
+    Password password ->
+      { model | password = password }
+    PasswordAgain password ->
+      { model | passwordAgain = password }
 
 view : Model -> Html Msg
 view model =
   div []
-    [ input [ placeholder "Text to reverse", value model.content, onInput Change ] []
-    , div [] [ text (String.reverse model.content) ]
+    [ viewInput "text" "Name" model.name Name
+    , viewInput "password" "Password" model.password Password
+    , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
+    , viewValidation model
     ]
+
+viewInput : String -> String -> String -> (String -> msg) -> Html msg
+viewInput t p v toMsg =
+  input [ type_ t, placeholder p, value v, onInput toMsg ] []
+
+viewValidation : Model -> Html msg
+viewValidation model =
+  if model.password == model.passwordAgain then
+    div [ style "color" "green" ] [ text "OK" ]
+  else
+    div [ style "color" "red" ] [ text "Passdords do not match!" ]
