@@ -17,29 +17,40 @@ main =
     }
 
 type alias Model =
-  { diceFace : Int
+  { diceFaces : List Int
   }
   
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  ( Model 1
+  ( Model [1, 1]
   , Cmd.none
   )
 
+type alias Spin =
+  { one : Int
+  , two : Int
+  }
+
 type Msg
   = Roll
-  | NewFace Int
+  | NewFace Spin
+
+diceRandom : Random.Generator Int
+diceRandom = Random.weighted (50, 1) [(50, 1), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6)]
+
+spin : Random.Generator Spin
+spin = Random.map2 Spin diceRandom diceRandom
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Roll ->
       ( model
-      , Random.generate NewFace (Random.int 1 6)
+      , Random.generate NewFace spin
       )
-    NewFace newFace ->
-      ( Model newFace
+    NewFace { one, two } ->
+      ( Model [one, two]
       , Cmd.none
       )
 
@@ -50,6 +61,5 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div []
-    [ button [ onClick Roll ] [ text "Roll" ]
-    , dice model.diceFace
-    ]
+    ([ button [ onClick Roll ] [ text "Roll" ] ] 
+      ++ (List.map dice model.diceFaces))
