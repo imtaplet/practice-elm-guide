@@ -8,6 +8,8 @@ import Html.Attributes exposing (width, height, style)
 import Html.Events exposing (..)
 import Random
 
+diceCount = 3
+
 main =
   Browser.element 
     { init = init
@@ -22,42 +24,37 @@ type Model
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  ( Rolled [1, 1]
+  ( Rolled (List.repeat diceCount 1)
   , Cmd.none
   )
 
-type alias Spin =
-  { one : Int
-  , two : Int
-  }
-
 type Msg
   = Roll
-  | NewFace Spin
+  | NewFace (List Int)
 
 diceRandom : Random.Generator Int
 diceRandom = Random.weighted (10, 1) [(10, 1), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6)]
 
-spin : Random.Generator Spin
-spin = Random.map2 Spin diceRandom diceRandom
+spin : Int -> Random.Generator (List Int)
+spin n = Random.list n diceRandom
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (model, msg) of
     (_, Roll) ->
       ( Rolling 5 []
-      , Random.generate NewFace spin
+      , Random.generate NewFace (spin diceCount)
       )
-    (Rolling 1 _, NewFace { one, two }) ->
-      ( Rolled [one, two]
-      , Random.generate NewFace spin
+    (Rolling 1 _, NewFace xs) ->
+      ( Rolled xs
+      , Random.generate NewFace (spin diceCount)
       )
-    (Rolling n _, NewFace { one, two }) ->
-      ( Rolling (n - 1) [one, two]
-      , Random.generate NewFace spin
+    (Rolling n _, NewFace xs) ->
+      ( Rolling (n - 1) xs
+      , Random.generate NewFace (spin diceCount)
       )
-    (Rolled _, NewFace { one, two }) ->
-      ( Rolled [one, two]
+    (Rolled _, NewFace xs) ->
+      ( Rolled xs
       , Cmd.none
       )
 
