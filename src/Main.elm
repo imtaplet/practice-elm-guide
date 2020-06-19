@@ -1,4 +1,7 @@
-module Main exposing (main)
+port module Main exposing (main)
+
+import Json.Encode as E
+
 
 import Dice exposing (dice)
 import AnalogWatch exposing (analogWatch)
@@ -10,6 +13,10 @@ import Html.Events exposing (..)
 import Random
 import Task
 import Time
+
+port cache : E.Value -> Cmd msg
+
+port interval : (Int -> msg) -> Sub msg
 
 diceCount = 30
 
@@ -35,10 +42,13 @@ type Model
 initTime : Cmd Msg
 initTime = Task.perform AdjustTimeZone Time.here
 
-init : () -> (Model, Cmd Msg)
-init _ =
-  ( Time { zone = Time.utc, time = Time.millisToPosix 0 }
-  , initTime
+init : Int -> (Model, Cmd Msg)
+init currentTime =
+  ( Time { zone = Time.utc, time = (Time.millisToPosix currentTime) }
+  , Cmd.batch 
+      [ initTime
+      , cache (E.int 42)
+      ]
   )
 
 type Msg
@@ -63,7 +73,7 @@ update msg model =
       , Cmd.none
       )
     (StopTime timeModel, Start) ->
-      init ()
+      init 0
     (Time timeModel, AdjustTimeZone newZone) ->
       ( Time { timeModel | zone = newZone }
       , Cmd.none
@@ -92,7 +102,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   case model of
-    Time _ -> Time.every 1000 Tick
+    Time _ -> interval (Time.millisToPosix >> Tick)
     _ -> Sub.none
 
 view : Model -> Html Msg
