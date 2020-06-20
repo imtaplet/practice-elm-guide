@@ -8,7 +8,7 @@ import AnalogWatch exposing (analogWatch)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (width, height, style)
+import Html.Attributes exposing (attribute, width, height, style)
 import Html.Events exposing (..)
 import Random
 import Task
@@ -108,8 +108,22 @@ subscriptions model =
 viewDocument : Model -> Browser.Document Msg
 viewDocument model =
   { title = "This is title."
-  , body = [ view model ]
+  , body = 
+      [ view model 
+      , viewDate "ja" 2020 1
+      ]
   }
+
+
+viewDate : String -> Int -> Int -> Html msg
+viewDate lang year month =
+  node "intl-date"
+    [ attribute "lang" lang
+    , attribute "year" (String.fromInt year)
+    , attribute "month" (String.fromInt month)
+    ]
+    []
+
 
 view : Model -> Html Msg
 view model =
