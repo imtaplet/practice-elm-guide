@@ -21,11 +21,11 @@ port interval : (Int -> msg) -> Sub msg
 diceCount = 30
 
 main =
-  Browser.element 
+  Browser.document 
     { init = init
     , update = update
     , subscriptions = subscriptions 
-    , view = view 
+    , view = viewDocument
     }
 
 type alias TimeAndZone =
@@ -104,6 +104,12 @@ subscriptions model =
   case model of
     Time _ -> interval (Time.millisToPosix >> Tick)
     _ -> Sub.none
+
+viewDocument : Model -> Browser.Document Msg
+viewDocument model =
+  { title = "This is title."
+  , body = [ view model ]
+  }
 
 view : Model -> Html Msg
 view model =
